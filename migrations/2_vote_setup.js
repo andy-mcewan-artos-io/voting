@@ -16,6 +16,11 @@ module.exports = function(deployer, network, accounts) {
   }).then(function() {
     return Storage.deployed();    
   }).then(function(s) {
+    console.log('export var storage = "' + Storage.address + '"');
+    console.log('export var vote = "' + Vote.address + '"');
+    console.log('export var storageAbi = ' + JSON.stringify(Storage.abi));
+    console.log('export var voteAbi = ' + JSON.stringify(Vote.abi));
+
     return s.setOwner(Vote.address);
   });
 };
