@@ -20,17 +20,18 @@ library LLock {
   /** 
   * @dev Withdraw locked, staked AVT not used in an active vote
   * @param s Storage contract
+  * @param addr Address of the account withdrawing funds
   * @param amount Amount to withdraw from lock
   */
-  function withdraw(IStorage s, uint amount) 
+  function withdraw(IStorage s, address addr, uint amount) 
     isLocked(s, amount)
   {
-    var key = sha3("Lock", msg.sender);
+    var key = sha3("Lock", addr);
     var currDeposit = s.getUInt(key);
     var avt = IERC20(s.getAddress(sha3("AVT")));
 
     // Only withdraw less or equal to amount locked, transfer desired amount
-    require (amount <= currDeposit && avt.transfer(msg.sender, amount));
+    require (amount <= currDeposit && avt.transfer(addr, amount));
     // Overwrite user's locked amount
     s.setUInt(key, currDeposit - amount);
     updateBalance(s, amount, false);
@@ -39,17 +40,18 @@ library LLock {
   /** 
   * @dev Deposit & lock AVT for stake weighted votes
   * @param s Storage contract
+  * @param addr Address of the account depositing funds
   * @param amount Amount to withdraw from lock
   */
-  function deposit(IStorage s, uint amount) 
+  function deposit(IStorage s, address addr, uint amount) 
     isLocked(s, amount)
   {
-    var key = sha3("Lock", msg.sender);
+    var key = sha3("Lock", addr);
     var currDeposit = s.getUInt(key);
     var avt = IERC20(s.getAddress(sha3("AVT")));
 
     // Make sure deposit amount is not zero and transfer succeeds
-    require (amount > 0 && avt.transfer(this, amount));
+    require (amount > 0 && avt.transferFrom(addr, this, amount));
     // Overwrite locked funds amount
     s.setUInt(key, currDeposit + amount);
     updateBalance(s, amount, true);

@@ -9,7 +9,7 @@ contract AventusVote is Owned {
   using LLock for IStorage;
   using LVote for IStorage;
 
-  IStorage s;
+  IStorage public s;
 
   /**
   * @dev Constructor
@@ -21,18 +21,20 @@ contract AventusVote is Owned {
 
   /** 
   * @dev Withdraw locked, staked AVT not used in an active vote
+  * @param addr Address of the account withdrawing funds
   * @param amount Amount to withdraw from lock
   */
-  function withdraw(uint amount) {
-    s.withdraw(amount);
+  function withdraw(address addr, uint amount) {
+    s.withdraw(addr, amount);
   }
 
   /** 
   * @dev Deposit & lock AVT for stake weighted votes
+  * @param addr Address of the account depositing funds
   * @param amount Amount to withdraw from lock
   */
-  function deposit(uint amount) {
-    s.deposit(amount);
+  function deposit(address addr, uint amount) {
+    s.deposit(addr, amount);
   }
 
   // @dev Toggle the ability to lock funds for staking (For security)
