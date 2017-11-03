@@ -8,12 +8,12 @@ library LLock {
 
   // If locking AVT functionality is on and address has locked AVT, throw 
   modifier isLocked(IStorage s, uint amount) {
-    require (!s.getBoolean(sha3("LockFreeze")) && 
+    require (!s.getBoolean(keccak("LockFreeze")) && 
       !isAddressLocked(s, msg.sender));
     
-    if (s.getBoolean(sha3("LockRestricted")))
-      require (s.getUInt(sha3("LockBalance")) < s.getUInt(sha3("LockBalanceMax")) && 
-        amount < s.getUInt(sha3("LockAmountMax")));
+    if (s.getBoolean(keccak("LockRestricted")))
+      require (s.getUInt(keccak("LockBalance")) < s.getUInt(keccak("LockBalanceMax")) && 
+        amount < s.getUInt(keccak("LockAmountMax")));
     _;
   }
 
@@ -26,9 +26,9 @@ library LLock {
   function withdraw(IStorage s, address addr, uint amount) 
     isLocked(s, amount)
   {
-    var key = sha3("Lock", addr);
+    var key = keccak("Lock", addr);
     var currDeposit = s.getUInt(key);
-    var avt = IERC20(s.getAddress(sha3("AVT")));
+    var avt = IERC20(s.getAddress(keccak("AVT")));
 
     // Only withdraw less or equal to amount locked, transfer desired amount
     require (amount <= currDeposit && avt.transfer(addr, amount));
@@ -46,9 +46,9 @@ library LLock {
   function deposit(IStorage s, address addr, uint amount) 
     isLocked(s, amount)
   {
-    var key = sha3("Lock", addr);
+    var key = keccak("Lock", addr);
     var currDeposit = s.getUInt(key);
-    var avt = IERC20(s.getAddress(sha3("AVT")));
+    var avt = IERC20(s.getAddress(keccak("AVT")));
 
     // Make sure deposit amount is not zero and transfer succeeds
     require (amount > 0 && avt.transferFrom(addr, this, amount));
@@ -62,7 +62,7 @@ library LLock {
   * @param s Storage contract
   */
   function toggleLockFreeze(IStorage s) {
-    var key = sha3("LockFreeze");
+    var key = keccak("LockFreeze");
     var frozen = s.getBoolean(key);
 
     s.setBoolean(key, !frozen);
@@ -76,9 +76,9 @@ library LLock {
   * @param balance Maximum amount of AVT that can be locked up in total
   */
   function setThresholds(IStorage s, bool restricted, uint amount, uint balance) {
-    s.setBoolean(sha3("LockRestricted"), restricted);
-    s.setUInt(sha3("LockAmountMax"), amount);
-    s.setUInt(sha3("LockBalanceMax"), balance);
+    s.setBoolean(keccak("LockRestricted"), restricted);
+    s.setUInt(keccak("LockAmountMax"), amount);
+    s.setUInt(keccak("LockBalanceMax"), balance);
   }
 
   /** 
@@ -90,7 +90,7 @@ library LLock {
   function updateBalance(IStorage s, uint amount, bool increment) 
     private
   {
-    var key = sha3("LockBalance");
+    var key = keccak("LockBalance");
     var balance = s.getUInt(key);
 
     if (increment)
@@ -112,7 +112,7 @@ library LLock {
     constant
     returns (bool)
   {
-    var lockedUntil = s.getUInt(sha3("Voting", user, 0, "nextTime"));
+    var lockedUntil = s.getUInt(keccak("Voting", user, 0, "nextTime"));
 
     if (lockedUntil == 0)
       return false; // No unrevealed votes

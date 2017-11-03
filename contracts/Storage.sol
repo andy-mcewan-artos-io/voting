@@ -5,7 +5,7 @@ import "./Owned.sol";
 
 // Persistent storage on the blockchain
 contract Storage is Owned, IStorage {
-  // some storage key e.g. sha3("vote", voteId, "end") => stored uint value
+  // some storage key e.g. keccak("vote", voteId, "end") => stored uint value
   mapping(bytes32 => uint) UInt;
 
   /** 
@@ -40,7 +40,7 @@ contract Storage is Owned, IStorage {
     delete UInt[record];
   }
 
-  // some storage key e.g. sha3("vote", voteId, "end") => stored string value
+  // some storage key e.g. keccak("vote", voteId, "end") => stored string value
   mapping(bytes32 => string) String;
 
   /** 
@@ -75,7 +75,7 @@ contract Storage is Owned, IStorage {
     delete String[record];
   }
 
-  // some storage key e.g. sha3("vote", voteId, "end") => stored address value
+  // some storage key e.g. keccak("vote", voteId, "end") => stored address value
   mapping(bytes32 => address) Address;
 
   /** 
@@ -110,7 +110,7 @@ contract Storage is Owned, IStorage {
     delete Address[record];
   }
 
-  // some storage key e.g. sha3("vote", voteId, "end") => stored bytes value
+  // some storage key e.g. keccak("vote", voteId, "end") => stored bytes value
   mapping(bytes32 => bytes) Bytes;
 
   /** 
@@ -145,7 +145,7 @@ contract Storage is Owned, IStorage {
     delete Bytes[record];
   }
 
-  // some storage key e.g. sha3("vote", voteId, "end") => stored bytes32 value
+  // some storage key e.g. keccak("vote", voteId, "end") => stored bytes32 value
   mapping(bytes32 => bytes32) Bytes32;
 
   /** 
@@ -180,7 +180,7 @@ contract Storage is Owned, IStorage {
     delete Bytes32[record];
   }
 
-  // some storage key e.g. sha3("vote", voteId, "end") => stored bool value
+  // some storage key e.g. keccak("vote", voteId, "end") => stored bool value
   mapping(bytes32 => bool) Boolean;
 
   /** 

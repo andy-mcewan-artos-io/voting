@@ -21,20 +21,18 @@ contract AventusVote is Owned {
 
   /** 
   * @dev Withdraw locked, staked AVT not used in an active vote
-  * @param addr Address of the account withdrawing funds
   * @param amount Amount to withdraw from lock
   */
-  function withdraw(address addr, uint amount) {
-    s.withdraw(addr, amount);
+  function withdraw(uint amount) {
+    s.withdraw(msg.sender, amount);
   }
 
   /** 
   * @dev Deposit & lock AVT for stake weighted votes
-  * @param addr Address of the account depositing funds
   * @param amount Amount to withdraw from lock
   */
-  function deposit(address addr, uint amount) {
-    s.deposit(addr, amount);
+  function deposit(uint amount) {
+    s.deposit(msg.sender, amount);
   }
 
   // @dev Toggle the ability to lock funds for staking (For security)
@@ -99,9 +97,9 @@ contract AventusVote is Owned {
   * @dev Reveal a vote on a proposal
   * @param id Proposal ID
   * @param optId ID of option that was voted on
-  * @param v User's ECDSA signature(sha3(optID)) v value
-  * @param r User's ECDSA signature(sha3(optID)) r value
-  * @param s_ User's ECDSA signature(sha3(optID)) s value
+  * @param v User's ECDSA signature(keccak(optID)) v value
+  * @param r User's ECDSA signature(keccak(optID)) r value
+  * @param s_ User's ECDSA signature(keccak(optID)) s value
   */
   function revealVote(uint id, uint optId, uint8 v, bytes32 r, bytes32 s_) {
     s.revealVote(id, optId, v, r, s_);

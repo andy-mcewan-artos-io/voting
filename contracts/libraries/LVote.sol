@@ -19,11 +19,11 @@ library LVote {
   function createVote(IStorage s, string desc)
     returns (uint)
   {
-    uint voteCount = s.getUInt(sha3("VoteCount"));
+    uint voteCount = s.getUInt(keccak("VoteCount"));
     uint id = voteCount + 1;
 
-    s.setString(sha3("Vote", id, "description"), desc);
-    s.setUInt(sha3("VoteCount"), voteCount + 1);
+    s.setString(keccak("Vote", id, "description"), desc);
+    s.setUInt(keccak("VoteCount"), voteCount + 1);
 
     return id;
   }
@@ -37,14 +37,14 @@ library LVote {
   function addVoteOption(IStorage s, uint id, string option)
     isStatus(s, id, 0)
   {
-    var count = s.getUInt(sha3("Vote", id, "OptionsCount"));
+    var count = s.getUInt(keccak("Vote", id, "OptionsCount"));
 
     // Cannot add more than 4 options
     require (count < 5);
 
     // Store new options count, and the option + description
-    s.setString(sha3("Vote", id, "option", count + 1), option);
-    s.setUInt(sha3("Vote", id, "OptionsCount"), count + 1);
+    s.setString(keccak("Vote", id, "option", count + 1), option);
+    s.setUInt(keccak("Vote", id, "OptionsCount"), count + 1);
   }
 
   /** 
@@ -60,7 +60,7 @@ library LVote {
     // Make sure start is afer now and that interval is at least a week
     require (start >= now && interval >= 7 days);
 
-    var optionCount = s.getUInt(sha3("Vote", id, "OptionsCount"));
+    var optionCount = s.getUInt(keccak("Vote", id, "OptionsCount"));
 
     // Make sure there are more than 2 options to vote on
     require (optionCount > 2);
@@ -70,9 +70,9 @@ library LVote {
     var revealingStart = votingStart + interval;
     var end = revealingStart + interval;
 
-    s.setUInt(sha3("Vote", id, "votingStart"), votingStart);
-    s.setUInt(sha3("Vote", id, "revealingStart"), revealingStart);
-    s.setUInt(sha3("Vote", id, "end"), end);
+    s.setUInt(keccak("Vote", id, "votingStart"), votingStart);
+    s.setUInt(keccak("Vote", id, "revealingStart"), revealingStart);
+    s.setUInt(keccak("Vote", id, "end"), end);
   }
 
   /** 
@@ -94,11 +94,11 @@ library LVote {
     isStatus(s, id, 2)
   {
     // The current proposal's start of the reveal time
-    var time = s.getUInt(sha3("Vote", id, "revealingStart"));
+    var time = s.getUInt(keccak("Vote", id, "revealingStart"));
     // The next revealStart referenced by the user's previous revealStart time
-    var nextTime = s.getUInt(sha3("Voting", msg.sender, prevTime, "nextTime"));
+    var nextTime = s.getUInt(keccak("Voting", msg.sender, prevTime, "nextTime"));
     // Next proposal referenced by prev proposalId w/ prevTime = revealStart
-    var nextId = s.getUInt(sha3("Voting", msg.sender, prevTime, "secrets", prevId, "nextId"));
+    var nextId = s.getUInt(keccak("Voting", msg.sender, prevTime, "secrets", prevId, "nextId"));
 
     // Ensure prevTime passed in is correct and that user hasn't yet voted on 
     // this proposal
@@ -108,20 +108,20 @@ library LVote {
     // doubly linked list
     if (time != nextTime) {
       // Create new entry
-      s.setUInt(sha3("Voting", msg.sender, time, "prevTime"), prevTime);
-      s.setUInt(sha3("Voting", msg.sender, time, "nextTime"), nextTime);
-      s.setUInt(sha3("Voting", msg.sender, prevTime, "nextTime"), time);
-      s.setUInt(sha3("Voting", msg.sender, nextTime, "prevTime"), time);
+      s.setUInt(keccak("Voting", msg.sender, time, "prevTime"), prevTime);
+      s.setUInt(keccak("Voting", msg.sender, time, "nextTime"), nextTime);
+      s.setUInt(keccak("Voting", msg.sender, prevTime, "nextTime"), time);
+      s.setUInt(keccak("Voting", msg.sender, nextTime, "prevTime"), time);
     }
     // for the given revealStart item, in the next proposal ID doubly linked list
     // Insert a new item for this proposal
-    s.setUInt(sha3("Voting", msg.sender, time, "secrets", id, "prevId"), prevId);
-    s.setUInt(sha3("Voting", msg.sender, time, "secrets", id, "nextId"), nextId);
-    s.setUInt(sha3("Voting", msg.sender, time, "secrets", prevId, "nextId"), id);
-    s.setUInt(sha3("Voting", msg.sender, time, "secrets", nextId, "prevId"), id);
+    s.setUInt(keccak("Voting", msg.sender, time, "secrets", id, "prevId"), prevId);
+    s.setUInt(keccak("Voting", msg.sender, time, "secrets", id, "nextId"), nextId);
+    s.setUInt(keccak("Voting", msg.sender, time, "secrets", prevId, "nextId"), id);
+    s.setUInt(keccak("Voting", msg.sender, time, "secrets", nextId, "prevId"), id);
 
     // Save the secret vote for the user and proposal
-    s.setBytes32(sha3("Voting", msg.sender, time, "secrets", id, "secret"), secret);
+    s.setBytes32(keccak("Voting", msg.sender, time, "secrets", id, "secret"), secret);
   }
 
   /** 
@@ -129,29 +129,29 @@ library LVote {
   * @param s Storage contract
   * @param id Proposal ID
   * @param optId ID of option that was voted on
-  * @param v User's ECDSA signature(sha3(optID)) v value
-  * @param r User's ECDSA signature(sha3(optID)) r value
-  * @param s_ User's ECDSA signature(sha3(optID)) s value
+  * @param v User's ECDSA signature(keccak(optID)) v value
+  * @param r User's ECDSA signature(keccak(optID)) r value
+  * @param s_ User's ECDSA signature(keccak(optID)) s value
   */
   function revealVote(IStorage s, uint id, uint optId, uint8 v, bytes32 r, bytes32 s_) {
     // Make sure proposal status is Reveal or end
     require (getVoteStatus(s, id) >= 3);
     // Get voter public key from message and ECDSA components
-    var voter = ecrecover(sha3(optId), v, r, s_);
+    var voter = ecrecover(keccak(optId), v, r, s_);
     // Get proposal revealStart
-    var time = s.getUInt(sha3("Vote", id, "revealingStart"));
+    var time = s.getUInt(keccak("Vote", id, "revealingStart"));
     // Get the voter's secret vote for the given proposal
-    var secret = s.getBytes32(sha3("Voting", voter, time, "secrets", id, "secret"));
+    var secret = s.getBytes32(keccak("Voting", voter, time, "secrets", id, "secret"));
     // Make sure the original vote is the same as the reveal
-    require (secret == sha3(v, r, s_));
+    require (secret == keccak(v, r, s_));
 
     // Unlock the user's AVT stake for this proposal
     updateList(s, voter, time, id);
 
     // Key to current voteCount for the optId for the given proposal
-    var key = sha3("Vote", id, "option", optId);
+    var key = keccak("Vote", id, "option", optId);
     // Increment the vote count of the option by the AVT stake of voter
-    s.setUInt(key, s.getUInt(key) + s.getUInt(sha3("Lock", voter)));
+    s.setUInt(key, s.getUInt(key) + s.getUInt(keccak("Lock", voter)));
   }
 
   /** 
@@ -165,20 +165,20 @@ library LVote {
     private
     constant
   {
-    var prevId = s.getUInt(sha3("Voting", voter, time, "secrets", id, "prevId"));
-    var nextId = s.getUInt(sha3("Voting", voter, time, "secrets", id, "nextId"));
+    var prevId = s.getUInt(keccak("Voting", voter, time, "secrets", id, "prevId"));
+    var nextId = s.getUInt(keccak("Voting", voter, time, "secrets", id, "nextId"));
 
     // remove time entry if proposal ID was the only one with that revealStart
     if (prevId == nextId) {
-      var prevTime = s.getUInt(sha3("Voting", voter, time, "prevTime"));
-      var nextTime = s.getUInt(sha3("Voting", voter, time, "nextTime"));
-      s.setUInt(sha3("Voting", msg.sender, prevTime, "nextTime"), nextTime);
-      s.setUInt(sha3("Voting", msg.sender, nextTime, "nextTime"), prevTime);
+      var prevTime = s.getUInt(keccak("Voting", voter, time, "prevTime"));
+      var nextTime = s.getUInt(keccak("Voting", voter, time, "nextTime"));
+      s.setUInt(keccak("Voting", msg.sender, prevTime, "nextTime"), nextTime);
+      s.setUInt(keccak("Voting", msg.sender, nextTime, "nextTime"), prevTime);
     }
     // remove secret entry if time entry still has other secrets
     else {
-      s.setUInt(sha3("Voting", voter, time, "secrets", prevId, "nextId"), nextId);
-      s.setUInt(sha3("Voting", voter, time, "secrets", nextId, "prevId"), prevId);
+      s.setUInt(keccak("Voting", voter, time, "secrets", prevId, "nextId"), nextId);
+      s.setUInt(keccak("Voting", voter, time, "secrets", nextId, "prevId"), prevId);
     }
   }
 
@@ -193,9 +193,9 @@ library LVote {
     constant
     returns (uint8) 
   {
-    var votingStart = s.getUInt(sha3("Vote", id, "votingStart"));
-    var revealingStart = s.getUInt(sha3("Vote", id, "revealingStart"));
-    var end = s.getUInt(sha3("Vote", id, "end"));
+    var votingStart = s.getUInt(keccak("Vote", id, "votingStart"));
+    var revealingStart = s.getUInt(keccak("Vote", id, "revealingStart"));
+    var end = s.getUInt(keccak("Vote", id, "end"));
 
     if (votingStart == 0)
       return 0;
