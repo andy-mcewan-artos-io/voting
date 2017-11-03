@@ -8,12 +8,12 @@ library LLock {
 
   // If locking AVT functionality is on and address has locked AVT, throw 
   modifier isLocked(IStorage s, uint amount) {
-    require (!s.getBoolean(keccak("LockFreeze")) && 
+    require (!s.getBoolean(keccak256("LockFreeze")) && 
       !isAddressLocked(s, msg.sender));
     
-    if (s.getBoolean(keccak("LockRestricted")))
-      require (s.getUInt(keccak("LockBalance")) < s.getUInt(keccak("LockBalanceMax")) && 
-        amount < s.getUInt(keccak("LockAmountMax")));
+    if (s.getBoolean(keccak256("LockRestricted")))
+      require (s.getUInt(keccak256("LockBalance")) < s.getUInt(keccak256("LockBalanceMax")) && 
+        amount < s.getUInt(keccak256("LockAmountMax")));
     _;
   }
 
@@ -26,9 +26,9 @@ library LLock {
   function withdraw(IStorage s, address addr, uint amount) 
     isLocked(s, amount)
   {
-    var key = keccak("Lock", addr);
+    var key = keccak256("Lock", addr);
     var currDeposit = s.getUInt(key);
-    var avt = IERC20(s.getAddress(keccak("AVT")));
+    var avt = IERC20(s.getAddress(keccak256("AVT")));
 
     // Only withdraw less or equal to amount locked, transfer desired amount
     require (amount <= currDeposit && avt.transfer(addr, amount));
@@ -46,9 +46,9 @@ library LLock {
   function deposit(IStorage s, address addr, uint amount) 
     isLocked(s, amount)
   {
-    var key = keccak("Lock", addr);
+    var key = keccak256("Lock", addr);
     var currDeposit = s.getUInt(key);
-    var avt = IERC20(s.getAddress(keccak("AVT")));
+    var avt = IERC20(s.getAddress(keccak256("AVT")));
 
     // Make sure deposit amount is not zero and transfer succeeds
     require (amount > 0 && avt.transferFrom(addr, this, amount));
@@ -62,7 +62,7 @@ library LLock {
   * @param s Storage contract
   */
   function toggleLockFreeze(IStorage s) {
-    var key = keccak("LockFreeze");
+    var key = keccak256("LockFreeze");
     var frozen = s.getBoolean(key);
 
     s.setBoolean(key, !frozen);
@@ -76,9 +76,9 @@ library LLock {
   * @param balance Maximum amount of AVT that can be locked up in total
   */
   function setThresholds(IStorage s, bool restricted, uint amount, uint balance) {
-    s.setBoolean(keccak("LockRestricted"), restricted);
-    s.setUInt(keccak("LockAmountMax"), amount);
-    s.setUInt(keccak("LockBalanceMax"), balance);
+    s.setBoolean(keccak256("LockRestricted"), restricted);
+    s.setUInt(keccak256("LockAmountMax"), amount);
+    s.setUInt(keccak256("LockBalanceMax"), balance);
   }
 
   /** 
@@ -90,7 +90,7 @@ library LLock {
   function updateBalance(IStorage s, uint amount, bool increment) 
     private
   {
-    var key = keccak("LockBalance");
+    var key = keccak256("LockBalance");
     var balance = s.getUInt(key);
 
     if (increment)
@@ -112,7 +112,7 @@ library LLock {
     constant
     returns (bool)
   {
-    var lockedUntil = s.getUInt(keccak("Voting", user, 0, "nextTime"));
+    var lockedUntil = s.getUInt(keccak256("Voting", user, 0, "nextTime"));
 
     if (lockedUntil == 0)
       return false; // No unrevealed votes

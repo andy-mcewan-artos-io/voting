@@ -9,6 +9,11 @@ contract AventusVote is Owned {
   using LLock for IStorage;
   using LVote for IStorage;
 
+  modifier onlyVoteCreator(uint id) {
+    require (msg.sender == s.getAddress(keccak256("Vote", id, "creator")));
+    _;
+  }
+
   IStorage public s;
 
   /**
@@ -60,7 +65,7 @@ contract AventusVote is Owned {
   * @return uint ID of newly created proposal
   */
   function createVote(string desc) {
-    s.createVote(desc);
+    s.createVote(msg.sender, desc);
   }
 
   /** 
@@ -68,7 +73,9 @@ contract AventusVote is Owned {
   * @param id Proposal ID
   * @param option Description of option
   */
-  function addVoteOption(uint id, string option) {
+  function addVoteOption(uint id, string option) 
+    onlyVoteCreator(id)
+  {
     s.addVoteOption(id, option);
   }
 
@@ -78,7 +85,9 @@ contract AventusVote is Owned {
   * @param start The start date of the cooldown period, after which vote starts
   * @param interval The amount of time the vote and reveal periods last for
   */
-  function finaliseVote(uint id, uint start, uint interval) {
+  function finaliseVote(uint id, uint start, uint interval) 
+    onlyVoteCreator(id)
+  {
     s.finaliseVote(id, start, interval);
   }
 
@@ -90,7 +99,7 @@ contract AventusVote is Owned {
   * @param prevId The previous proposal ID at the current revealStart time 
   */
   function castVote(uint id, bytes32 secret, uint prevTime, uint prevId) {
-    s.castVote(id, secret, prevTime, prevId);
+    s.castVote(id, msg.sender, secret, prevTime, prevId);
   }
 
   /** 
@@ -103,5 +112,15 @@ contract AventusVote is Owned {
   */
   function revealVote(uint id, uint optId, uint8 v, bytes32 r, bytes32 s_) {
     s.revealVote(id, optId, v, r, s_);
+  }
+
+  /** 
+  * @dev Update the owner of the storage contract
+  * @param owner_ New Owner of the storage contract
+  */
+  function setStorageOwner(address owner_) 
+    onlyOwner
+  {
+    Owned(s).setOwner(owner_);
   }
 }
