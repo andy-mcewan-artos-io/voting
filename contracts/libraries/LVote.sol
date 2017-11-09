@@ -109,7 +109,7 @@ library LVote {
 
     // Ensure prevTime passed in is correct and that user hasn't yet voted on 
     // this proposal
-    require (time > prevTime && time <= nextTime && id > prevId && id < nextId);
+    require (time > prevTime && (nextTime == 0 || time <= nextTime) && id > prevId && (nextId == 0 || id < nextId));
 
     // If revealStart time is less than next revealStart, insert new item into
     // doubly linked list
