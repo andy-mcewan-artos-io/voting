@@ -1,0 +1,23 @@
+{
+  "name": "voting",
+  "version": "1.0.0",
+  "description": "Aventus Voting Module",
+  "main": "truffle.js",
+  "scripts": {
+    "solium": "node_modules/solium/bin/solium.js -d . > logs/solium_$(date +%s).log &",
+    "deploy": "truffle deploy --network rinkeby --reset > logs/deploy_$(date +%s).log &"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AventusSystems/voting.git"
+  },
+  "author": "Alan Vey",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AventusSystems/voting/issues"
+  },
+  "homepage": "https://github.com/AventusSystems/voting#readme",
+  "devDependencies": {
+    "solium": "^1.0.4"
+  }
+}

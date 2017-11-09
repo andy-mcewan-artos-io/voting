@@ -22,9 +22,17 @@ module.exports = function(deployer, network, accounts) {
     return Storage.deployed();    
   }).then(function(s_) {
     s = s_;
-    var avt = "0x2c2b6afed68b69cc6afd108b624884decd9129e6";
+    var avt = "0x4a1a83b9983757b9e2126d66ab69592a339ff6b5";
+
+    console.log("Setting AVT = " + avt);
 
     return s.setAddress(web3.sha3("AVT"), avt);
+  }).then(function() {
+    return s.setBoolean(web3.sha3("LockRestricted"), true);
+  }).then(function() {
+    return s.setUInt(web3.sha3("LockAmountMax"), web3.toWei(1, 'ether'));
+  }).then(function() {
+    return s.setUInt(web3.sha3("LockBalanceMax"), web3.toWei(1000, 'ether'));
   }).then(function() {
     return s.setOwner(Vote.address);
   });

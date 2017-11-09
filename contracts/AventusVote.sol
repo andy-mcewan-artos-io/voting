@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 import './interfaces/IStorage.sol';
 import './libraries/LLock.sol';
@@ -20,7 +20,7 @@ contract AventusVote is Owned {
   * @dev Constructor
   * @param s_ Persistent storage contract
   */
-  function AventusVote(IStorage s_) {
+  function AventusVote(IStorage s_) public {
     s = s_;
   }
 
@@ -28,7 +28,7 @@ contract AventusVote is Owned {
   * @dev Withdraw locked, staked AVT not used in an active vote
   * @param amount Amount to withdraw from lock
   */
-  function withdraw(uint amount) {
+  function withdraw(uint amount) public {
     s.withdraw(msg.sender, amount);
   }
 
@@ -36,12 +36,13 @@ contract AventusVote is Owned {
   * @dev Deposit & lock AVT for stake weighted votes
   * @param amount Amount to withdraw from lock
   */
-  function deposit(uint amount) {
+  function deposit(uint amount) public {
     s.deposit(msg.sender, amount);
   }
 
   // @dev Toggle the ability to lock funds for staking (For security)
   function toggleLockFreeze()
+    public
     onlyOwner
   {
     s.toggleLockFreeze();
@@ -54,6 +55,7 @@ contract AventusVote is Owned {
   * @param balance Maximum amount of AVT that can be locked up in total
   */
   function setThresholds(bool restricted, uint amount, uint balance)
+    public
     onlyOwner
   {
     s.setThresholds(restricted, amount, balance);
@@ -64,7 +66,7 @@ contract AventusVote is Owned {
   * @param desc Either just a title or a pointer to IPFS details
   * @return uint ID of newly created proposal
   */
-  function createVote(string desc) {
+  function createVote(string desc) public {
     s.createVote(msg.sender, desc);
   }
 
@@ -74,6 +76,7 @@ contract AventusVote is Owned {
   * @param option Description of option
   */
   function addVoteOption(uint id, string option) 
+    public
     onlyVoteCreator(id)
   {
     s.addVoteOption(id, option);
@@ -86,6 +89,7 @@ contract AventusVote is Owned {
   * @param interval The amount of time the vote and reveal periods last for
   */
   function finaliseVote(uint id, uint start, uint interval) 
+    public
     onlyVoteCreator(id)
   {
     s.finaliseVote(id, start, interval);
@@ -98,7 +102,7 @@ contract AventusVote is Owned {
   * @param prevTime The previous revealStart time that locked the user's funds
   * @param prevId The previous proposal ID at the current revealStart time 
   */
-  function castVote(uint id, bytes32 secret, uint prevTime, uint prevId) {
+  function castVote(uint id, bytes32 secret, uint prevTime, uint prevId) public {
     s.castVote(id, msg.sender, secret, prevTime, prevId);
   }
 
@@ -110,7 +114,7 @@ contract AventusVote is Owned {
   * @param r User's ECDSA signature(keccak(optID)) r value
   * @param s_ User's ECDSA signature(keccak(optID)) s value
   */
-  function revealVote(uint id, uint optId, uint8 v, bytes32 r, bytes32 s_) {
+  function revealVote(uint id, uint optId, uint8 v, bytes32 r, bytes32 s_) public {
     s.revealVote(id, optId, v, r, s_);
   }
 
@@ -119,6 +123,7 @@ contract AventusVote is Owned {
   * @param owner_ New Owner of the storage contract
   */
   function setStorageOwner(address owner_) 
+    public
     onlyOwner
   {
     Owned(s).setOwner(owner_);

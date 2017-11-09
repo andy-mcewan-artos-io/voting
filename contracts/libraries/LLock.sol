@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 import '../interfaces/IStorage.sol';
 import '../interfaces/IERC20.sol';
@@ -8,12 +8,10 @@ library LLock {
 
   // If locking AVT functionality is on and address has locked AVT, throw 
   modifier isLocked(IStorage s, uint amount) {
-    require (!s.getBoolean(keccak256("LockFreeze")) && 
-      !isAddressLocked(s, msg.sender));
+    require (!s.getBoolean(keccak256("LockFreeze")) && !isAddressLocked(s, msg.sender));
     
     if (s.getBoolean(keccak256("LockRestricted")))
-      require (s.getUInt(keccak256("LockBalance")) < s.getUInt(keccak256("LockBalanceMax")) && 
-        amount < s.getUInt(keccak256("LockAmountMax")));
+      require (s.getUInt(keccak256("LockBalance")) < s.getUInt(keccak256("LockBalanceMax")) && amount < s.getUInt(keccak256("LockAmountMax")));
     _;
   }
 
@@ -24,6 +22,7 @@ library LLock {
   * @param amount Amount to withdraw from lock
   */
   function withdraw(IStorage s, address addr, uint amount) 
+    public
     isLocked(s, amount)
   {
     var key = keccak256("Lock", addr);
@@ -44,6 +43,7 @@ library LLock {
   * @param amount Amount to withdraw from lock
   */
   function deposit(IStorage s, address addr, uint amount) 
+    public
     isLocked(s, amount)
   {
     var key = keccak256("Lock", addr);
@@ -61,7 +61,7 @@ library LLock {
   * @dev Toggle the ability to lock funds for staking (For security)
   * @param s Storage contract
   */
-  function toggleLockFreeze(IStorage s) {
+  function toggleLockFreeze(IStorage s) public {
     var key = keccak256("LockFreeze");
     var frozen = s.getBoolean(key);
 
@@ -75,7 +75,7 @@ library LLock {
   * @param amount Maximum amount of AVT any account can lock up at a time
   * @param balance Maximum amount of AVT that can be locked up in total
   */
-  function setThresholds(IStorage s, bool restricted, uint amount, uint balance) {
+  function setThresholds(IStorage s, bool restricted, uint amount, uint balance) public {
     s.setBoolean(keccak256("LockRestricted"), restricted);
     s.setUInt(keccak256("LockAmountMax"), amount);
     s.setUInt(keccak256("LockBalanceMax"), balance);
@@ -87,9 +87,7 @@ library LLock {
   * @param amount amount to update the balance by
   * @param increment True if incrementing balance
   */
-  function updateBalance(IStorage s, uint amount, bool increment) 
-    private
-  {
+  function updateBalance(IStorage s, uint amount, bool increment) private {
     var key = keccak256("LockBalance");
     var balance = s.getUInt(key);
 
@@ -112,7 +110,7 @@ library LLock {
     constant
     returns (bool)
   {
-    var lockedUntil = s.getUInt(keccak256("Voting", user, 0, "nextTime"));
+    var lockedUntil = s.getUInt(keccak256("Voting", user, uint(0), "nextTime"));
 
     if (lockedUntil == 0)
       return false; // No unrevealed votes

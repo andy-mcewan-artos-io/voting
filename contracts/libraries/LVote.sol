@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 import "../interfaces/IStorage.sol";
 
@@ -18,13 +18,14 @@ library LVote {
   * @return uint ID of newly created proposal
   */
   function createVote(IStorage s, address creator, string desc)
+    public
     returns (uint)
   {
     uint voteCount = s.getUInt(keccak256("VoteCount"));
     uint id = voteCount + 1;
 
     s.setString(keccak256("Vote", id, "description"), desc);
-    s.setUInt(keccak256("VoteCount"), voteCount + 1);
+    s.setUInt(keccak256("VoteCount"), id);
     s.setAddress(keccak256("Vote", id, "creator"), creator);
 
     return id;
@@ -37,6 +38,7 @@ library LVote {
   * @param option Description of option
   */
   function addVoteOption(IStorage s, uint id, string option)
+    public
     isStatus(s, id, 0)
   {
     var count = s.getUInt(keccak256("Vote", id, "OptionsCount"));
@@ -57,6 +59,7 @@ library LVote {
   * @param interval The amount of time the vote and reveal periods last for
   */
   function finaliseVote(IStorage s, uint id, uint start, uint interval)
+    public
     isStatus(s, id, 0)
   {
     // Make sure start is afer now and that interval is at least a week
@@ -65,7 +68,7 @@ library LVote {
     var optionCount = s.getUInt(keccak256("Vote", id, "OptionsCount"));
 
     // Make sure there are more than 2 options to vote on
-    require (optionCount > 2);
+    require (optionCount >= 2);
 
     // Cooldown period start, which is always twice the voting interval length
     var votingStart = start + 2 * interval;
@@ -94,8 +97,8 @@ library LVote {
     uint prevTime, // The previous revealStart in the doubly linked list
     uint prevId // The previous proposal ID that also has prevTime = revealStart
   ) 
-    // Ensure voting period is currently active
-    isStatus(s, id, 2)
+    public
+    isStatus(s, id, 2) // Ensure voting period is currently active
   {
     // The current proposal's start of the reveal time
     var time = s.getUInt(keccak256("Vote", id, "revealingStart"));
@@ -137,7 +140,7 @@ library LVote {
   * @param r User's ECDSA signature(keccak256(optID)) r value
   * @param s_ User's ECDSA signature(keccak256(optID)) s value
   */
-  function revealVote(IStorage s, uint id, uint optId, uint8 v, bytes32 r, bytes32 s_) {
+  function revealVote(IStorage s, uint id, uint optId, uint8 v, bytes32 r, bytes32 s_)  public {
     // Make sure proposal status is Reveal or end
     require (getVoteStatus(s, id) >= 3);
     // Get voter public key from message and ECDSA components
@@ -165,10 +168,7 @@ library LVote {
   * @param time revealStart time of proposal
   * @param id Proposal ID
   */
-  function updateList(IStorage s, address voter, uint time, uint id) 
-    private
-    constant
-  {
+  function updateList(IStorage s, address voter, uint time, uint id) private {
     var prevId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "prevId"));
     var nextId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "nextId"));
 
@@ -178,9 +178,7 @@ library LVote {
       var nextTime = s.getUInt(keccak256("Voting", voter, time, "nextTime"));
       s.setUInt(keccak256("Voting", voter, prevTime, "nextTime"), nextTime);
       s.setUInt(keccak256("Voting", voter, nextTime, "nextTime"), prevTime);
-    }
-    // remove secret entry if time entry still has other secrets
-    else {
+    } else { // remove secret entry if time entry still has other secrets
       s.setUInt(keccak256("Voting", voter, time, "secrets", prevId, "nextId"), nextId);
       s.setUInt(keccak256("Voting", voter, time, "secrets", nextId, "prevId"), prevId);
     }

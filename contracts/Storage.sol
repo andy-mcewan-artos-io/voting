@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 import "./interfaces/IStorage.sol";
 import "./Owned.sol";
@@ -12,7 +12,8 @@ contract Storage is Owned, IStorage {
   * @dev Get a stored uint
   * @param record The key for finding a given record value
   */
-  function getUInt(bytes32 record) 
+  function getUInt(bytes32 record)
+    public 
     constant 
     returns (uint)
   {
@@ -25,6 +26,7 @@ contract Storage is Owned, IStorage {
   * @param value The value to be stored
   */
   function setUInt(bytes32 record, uint value)
+    public
     onlyOwner
   {
     UInt[record] = value;
@@ -35,6 +37,7 @@ contract Storage is Owned, IStorage {
   * @param record The record whose value you want to delete
   */
   function deleteUInt(bytes32 record)
+    public
     onlyOwner
   {
     delete UInt[record];
@@ -48,6 +51,7 @@ contract Storage is Owned, IStorage {
   * @param record The key for finding a given record value
   */
   function getString(bytes32 record) 
+    public
     constant 
     returns (string)
   {
@@ -60,6 +64,7 @@ contract Storage is Owned, IStorage {
   * @param value The value to be stored
   */
   function setString(bytes32 record, string value)
+    public
     onlyOwner
   {
     String[record] = value;
@@ -70,6 +75,7 @@ contract Storage is Owned, IStorage {
   * @param record The record whose value you want to delete
   */
   function deleteString(bytes32 record)
+    public
     onlyOwner
   {
     delete String[record];
@@ -83,6 +89,7 @@ contract Storage is Owned, IStorage {
   * @param record The key for finding a given record value
   */
   function getAddress(bytes32 record) 
+    public
     constant 
     returns (address)
   {
@@ -95,6 +102,7 @@ contract Storage is Owned, IStorage {
   * @param value The value to be stored
   */
   function setAddress(bytes32 record, address value)
+    public
     onlyOwner
   {
     Address[record] = value;
@@ -105,6 +113,7 @@ contract Storage is Owned, IStorage {
   * @param record The record whose value you want to delete
   */
   function deleteAddress(bytes32 record)
+    public
     onlyOwner
   {
     delete Address[record];
@@ -118,6 +127,7 @@ contract Storage is Owned, IStorage {
   * @param record The key for finding a given record value
   */
   function getBytes(bytes32 record) 
+    public
     constant 
     returns (bytes)
   {
@@ -130,6 +140,7 @@ contract Storage is Owned, IStorage {
   * @param value The value to be stored
   */
   function setBytes(bytes32 record, bytes value)
+    public
     onlyOwner
   {
     Bytes[record] = value;
@@ -140,6 +151,7 @@ contract Storage is Owned, IStorage {
   * @param record The record whose value you want to delete
   */
   function deleteBytes(bytes32 record)
+    public
     onlyOwner
   {
     delete Bytes[record];
@@ -153,6 +165,7 @@ contract Storage is Owned, IStorage {
   * @param record The key for finding a given record value
   */
   function getBytes32(bytes32 record) 
+    public
     constant 
     returns (bytes32)
   {
@@ -165,6 +178,7 @@ contract Storage is Owned, IStorage {
   * @param value The value to be stored
   */
   function setBytes32(bytes32 record, bytes32 value)
+    public
     onlyOwner
   {
     Bytes32[record] = value;
@@ -175,6 +189,7 @@ contract Storage is Owned, IStorage {
   * @param record The record whose value you want to delete
   */
   function deleteBytes32(bytes32 record)
+    public
     onlyOwner
   {
     delete Bytes32[record];
@@ -188,6 +203,7 @@ contract Storage is Owned, IStorage {
   * @param record The key for finding a given record value
   */
   function getBoolean(bytes32 record) 
+    public
     constant 
     returns (bool)
   {
@@ -200,6 +216,7 @@ contract Storage is Owned, IStorage {
   * @param value The value to be stored
   */
   function setBoolean(bytes32 record, bool value)
+    public
     onlyOwner
   {
     Boolean[record] = value;
@@ -210,6 +227,7 @@ contract Storage is Owned, IStorage {
   * @param record The record whose value you want to delete
   */
   function deleteBoolean(bytes32 record)
+    public
     onlyOwner
   {
     delete Boolean[record];
@@ -222,6 +240,7 @@ contract Storage is Owned, IStorage {
   * @param record The key for finding a given record value
   */
   function getInt(bytes32 record) 
+    public
     constant 
     returns (int)
   {
@@ -234,6 +253,7 @@ contract Storage is Owned, IStorage {
   * @param value The value to be stored
   */
   function setInt(bytes32 record, int value)
+    public
     onlyOwner
   {
     Int[record] = value;
@@ -244,6 +264,7 @@ contract Storage is Owned, IStorage {
   * @param record The record whose value you want to delete
   */
   function deleteInt(bytes32 record)
+    public
     onlyOwner
   {
     delete Int[record];

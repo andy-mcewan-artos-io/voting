@@ -1,4 +1,4 @@
-pragma solidity ^0.4.15;
+pragma solidity ^0.4.18;
 
 contract Owned {
   address public owner = msg.sender;
@@ -9,6 +9,7 @@ contract Owned {
   }
 
   function setOwner(address owner_) 
+    public
     onlyOwner 
   {
     require (owner_ != 0x0);
@@ -17,6 +18,7 @@ contract Owned {
   }
 
   function kill(address forward)
+    public
     onlyOwner
   {
     selfdestruct(forward);
