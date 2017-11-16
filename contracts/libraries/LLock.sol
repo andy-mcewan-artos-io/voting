@@ -29,10 +29,13 @@ library LLock {
     uint currDeposit = s.getUInt(key);
     IERC20 avt = IERC20(s.getAddress(keccak256("AVT")));
 
-    // Only withdraw less or equal to amount locked, transfer desired amount
-    require (amount <= currDeposit && avt.transfer(addr, amount));
+    // Only withdraw less or equal to amount locked
+    require (amount <= currDeposit);
     // Overwrite user's locked amount
     s.setUInt(key, currDeposit - amount);
+    // Check transfer desired amount
+    require (avt.transfer(addr, amount));
+
     updateBalance(s, amount, false);
   }
 
@@ -50,10 +53,13 @@ library LLock {
     uint currDeposit = s.getUInt(key);
     IERC20 avt = IERC20(s.getAddress(keccak256("AVT")));
 
-    // Make sure deposit amount is not zero and transfer succeeds
-    require (amount > 0 && avt.transferFrom(addr, this, amount));
+    // Make sure deposit amount is not zero
+    require (amount > 0);
     // Overwrite locked funds amount
     s.setUInt(key, currDeposit + amount);
+    // Check transfer succeeds
+    require (avt.transferFrom(addr, this, amount))
+
     updateBalance(s, amount, true);
   }
 
