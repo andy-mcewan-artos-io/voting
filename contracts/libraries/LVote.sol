@@ -63,7 +63,7 @@ library LVote {
     isStatus(s, id, 0)
   {
     // Make sure start is afer now and that interval is at least a week
-    require (start >= now);// && interval >= 7 days);
+    require (start >= now && interval >= 7 days);
 
     uint optionCount = s.getUInt(keccak256("Vote", id, "OptionsCount"));
 
@@ -71,7 +71,7 @@ library LVote {
     require (optionCount >= 2);
 
     // Cooldown period start, which is always twice the voting interval length
-    uint votingStart = start;// + 2 * interval;
+    uint votingStart = start + 2 * interval;
     uint revealingStart = votingStart + interval;
     uint end = revealingStart + interval;
 
