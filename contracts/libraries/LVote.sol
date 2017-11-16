@@ -41,7 +41,7 @@ library LVote {
     public
     isStatus(s, id, 0)
   {
-    var count = s.getUInt(keccak256("Vote", id, "OptionsCount"));
+    uint count = s.getUInt(keccak256("Vote", id, "OptionsCount"));
 
     // Cannot add more than 4 options
     require (count < 5);
@@ -63,17 +63,17 @@ library LVote {
     isStatus(s, id, 0)
   {
     // Make sure start is afer now and that interval is at least a week
-    require (start >= now && interval >= 7 days);
+    require (start >= now);// && interval >= 7 days);
 
-    var optionCount = s.getUInt(keccak256("Vote", id, "OptionsCount"));
+    uint optionCount = s.getUInt(keccak256("Vote", id, "OptionsCount"));
 
     // Make sure there are more than 2 options to vote on
     require (optionCount >= 2);
 
     // Cooldown period start, which is always twice the voting interval length
-    var votingStart = start + 2 * interval;
-    var revealingStart = votingStart + interval;
-    var end = revealingStart + interval;
+    uint votingStart = start;// + 2 * interval;
+    uint revealingStart = votingStart + interval;
+    uint end = revealingStart + interval;
 
     s.setUInt(keccak256("Vote", id, "votingStart"), votingStart);
     s.setUInt(keccak256("Vote", id, "revealingStart"), revealingStart);
@@ -101,11 +101,11 @@ library LVote {
     isStatus(s, id, 2) // Ensure voting period is currently active
   {
     // The current proposal's start of the reveal time
-    var time = s.getUInt(keccak256("Vote", id, "revealingStart"));
+    uint time = s.getUInt(keccak256("Vote", id, "revealingStart"));
     // The next revealStart referenced by the user's previous revealStart time
-    var nextTime = s.getUInt(keccak256("Voting", voter, prevTime, "nextTime"));
+    uint nextTime = s.getUInt(keccak256("Voting", voter, prevTime, "nextTime"));
     // Next proposal referenced by prev proposalId w/ prevTime = revealStart
-    var nextId = s.getUInt(keccak256("Voting", voter, prevTime, "secrets", prevId, "nextId"));
+    uint nextId = s.getUInt(keccak256("Voting", voter, time, "secrets", prevId, "nextId"));
 
     // Ensure prevTime passed in is correct and that user hasn't yet voted on 
     // this proposal
@@ -143,20 +143,25 @@ library LVote {
   function revealVote(IStorage s, uint id, uint optId, uint8 v, bytes32 r, bytes32 s_)  public {
     // Make sure proposal status is Reveal or end
     require (getVoteStatus(s, id) >= 3);
+
+    // Web3.js sign(msg) prefixes msg with the below 
+    bytes memory prefix = "\x19Ethereum Signed Message:\n32";
+    bytes32 prefixedMsg = keccak256(prefix, keccak256(optId));
+
     // Get voter public key from message and ECDSA components
-    var voter = ecrecover(keccak256(optId), v, r, s_);
+    address voter = ecrecover(prefixedMsg, v, r, s_);
     // Get proposal revealStart
-    var time = s.getUInt(keccak256("Vote", id, "revealingStart"));
+    uint time = s.getUInt(keccak256("Vote", id, "revealingStart"));
     // Get the voter's secret vote for the given proposal
-    var secret = s.getBytes32(keccak256("Voting", voter, time, "secrets", id, "secret"));
+    bytes32 secret = s.getBytes32(keccak256("Voting", voter, time, "secrets", id, "secret"));
     // Make sure the original vote is the same as the reveal
-    require (secret == keccak256(v, r, s_));
+    require (secret == keccak256(uint(v), r, s_));
 
     // Unlock the user's AVT stake for this proposal
     updateList(s, voter, time, id);
 
     // Key to current voteCount for the optId for the given proposal
-    var key = keccak256("Vote", id, "option", optId);
+    bytes32 key = keccak256("Vote", id, "option", optId);
     // Increment the vote count of the option by the AVT stake of voter
     s.setUInt(key, s.getUInt(key) + s.getUInt(keccak256("Lock", voter)));
   }
@@ -169,13 +174,14 @@ library LVote {
   * @param id Proposal ID
   */
   function updateList(IStorage s, address voter, uint time, uint id) private {
-    var prevId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "prevId"));
-    var nextId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "nextId"));
+    uint prevId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "prevId"));
+    uint nextId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "nextId"));
 
     // remove time entry if proposal ID was the only one with that revealStart
     if (prevId == nextId) {
-      var prevTime = s.getUInt(keccak256("Voting", voter, time, "prevTime"));
-      var nextTime = s.getUInt(keccak256("Voting", voter, time, "nextTime"));
+      uint prevTime = s.getUInt(keccak256("Voting", voter, time, "prevTime"));
+      uint nextTime = s.getUInt(keccak256("Voting", voter, time, "nextTime"));
+      
       s.setUInt(keccak256("Voting", voter, prevTime, "nextTime"), nextTime);
       s.setUInt(keccak256("Voting", voter, nextTime, "nextTime"), prevTime);
     } else { // remove secret entry if time entry still has other secrets
@@ -195,9 +201,9 @@ library LVote {
     constant
     returns (uint8) 
   {
-    var votingStart = s.getUInt(keccak256("Vote", id, "votingStart"));
-    var revealingStart = s.getUInt(keccak256("Vote", id, "revealingStart"));
-    var end = s.getUInt(keccak256("Vote", id, "end"));
+    uint votingStart = s.getUInt(keccak256("Vote", id, "votingStart"));
+    uint revealingStart = s.getUInt(keccak256("Vote", id, "revealingStart"));
+    uint end = s.getUInt(keccak256("Vote", id, "end"));
 
     if (votingStart == 0)
       return 0;

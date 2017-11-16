@@ -22,7 +22,7 @@ module.exports = function(deployer, network, accounts) {
     return Storage.deployed();    
   }).then(function(s_) {
     s = s_;
-    var avt = "0x4a1a83b9983757b9e2126d66ab69592a339ff6b5";
+    var avt = "0x0d88ed6e74bbfd96b831231638b66c05571e824f";
 
     console.log("Setting AVT = " + avt);
 

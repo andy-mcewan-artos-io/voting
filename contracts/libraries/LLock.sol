@@ -25,9 +25,9 @@ library LLock {
     public
     isLocked(s, amount)
   {
-    var key = keccak256("Lock", addr);
-    var currDeposit = s.getUInt(key);
-    var avt = IERC20(s.getAddress(keccak256("AVT")));
+    bytes32 key = keccak256("Lock", addr);
+    uint currDeposit = s.getUInt(key);
+    IERC20 avt = IERC20(s.getAddress(keccak256("AVT")));
 
     // Only withdraw less or equal to amount locked, transfer desired amount
     require (amount <= currDeposit && avt.transfer(addr, amount));
@@ -46,9 +46,9 @@ library LLock {
     public
     isLocked(s, amount)
   {
-    var key = keccak256("Lock", addr);
-    var currDeposit = s.getUInt(key);
-    var avt = IERC20(s.getAddress(keccak256("AVT")));
+    bytes32 key = keccak256("Lock", addr);
+    uint currDeposit = s.getUInt(key);
+    IERC20 avt = IERC20(s.getAddress(keccak256("AVT")));
 
     // Make sure deposit amount is not zero and transfer succeeds
     require (amount > 0 && avt.transferFrom(addr, this, amount));
@@ -62,8 +62,8 @@ library LLock {
   * @param s Storage contract
   */
   function toggleLockFreeze(IStorage s) public {
-    var key = keccak256("LockFreeze");
-    var frozen = s.getBoolean(key);
+    bytes32 key = keccak256("LockFreeze");
+    bool frozen = s.getBoolean(key);
 
     s.setBoolean(key, !frozen);
   }
@@ -88,8 +88,8 @@ library LLock {
   * @param increment True if incrementing balance
   */
   function updateBalance(IStorage s, uint amount, bool increment) private {
-    var key = keccak256("LockBalance");
-    var balance = s.getUInt(key);
+    bytes32 key = keccak256("LockBalance");
+    uint balance = s.getUInt(key);
 
     if (increment)
       balance += amount;
@@ -110,7 +110,7 @@ library LLock {
     constant
     returns (bool)
   {
-    var lockedUntil = s.getUInt(keccak256("Voting", user, uint(0), "nextTime"));
+    uint lockedUntil = s.getUInt(keccak256("Voting", user, uint(0), "nextTime"));
 
     if (lockedUntil == 0)
       return false; // No unrevealed votes
