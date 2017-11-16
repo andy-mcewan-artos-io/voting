@@ -11,7 +11,7 @@ library LLock {
     require (!s.getBoolean(keccak256("LockFreeze")) && !isAddressLocked(s, msg.sender));
     
     if (s.getBoolean(keccak256("LockRestricted")))
-      require (s.getUInt(keccak256("LockBalance")) < s.getUInt(keccak256("LockBalanceMax")) && amount < s.getUInt(keccak256("LockAmountMax")));
+      require (s.getUInt(keccak256("LockBalance")) <= s.getUInt(keccak256("LockBalanceMax")) && amount <= s.getUInt(keccak256("LockAmountMax")));
     _;
   }
 
@@ -58,7 +58,7 @@ library LLock {
     // Overwrite locked funds amount
     s.setUInt(key, currDeposit + amount);
     // Check transfer succeeds
-    require (avt.transferFrom(addr, this, amount))
+    require (avt.transferFrom(addr, this, amount));
 
     updateBalance(s, amount, true);
   }
