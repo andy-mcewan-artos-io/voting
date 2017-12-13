@@ -1,10 +1,11 @@
 pragma solidity ^0.4.18;
 
-import "./interfaces/IStorage.sol";
+import "../proxies/PDelegate.sol";
+import "../interfaces/IStorage.sol";
 import "./Owned.sol";
 
 // Persistent storage on the blockchain
-contract Storage is Owned, IStorage {
+contract Storage is Owned, PDelegate, IStorage {
   // some storage key e.g. keccak("vote", voteId, "end") => stored uint value
   mapping(bytes32 => uint) UInt;
 
@@ -268,5 +269,16 @@ contract Storage is Owned, IStorage {
     onlyOwner
   {
     delete Int[record];
+  }
+
+  /**
+   * @dev In case we need to extend functionality - avoids copying state
+   */
+  function () payable public {
+    address target = getAddress(keccak256("StorageInstance"));
+
+    require (target > 0);
+
+    delegatedFwd(target, msg.data);
   }
 }

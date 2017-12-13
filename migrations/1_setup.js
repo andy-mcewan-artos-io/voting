@@ -5,25 +5,32 @@ var LVote = artifacts.require("./libraries/LVote.sol");
 var LLock = artifacts.require("./libraries/LLock.sol");
 
 module.exports = function(deployer, network, accounts) {
-  var s;
+  var addrLVote, addrLLock;
+
+  var s = Storage.at("0xa0ed9a40aac5831a39a25f6aba30542e68d6d37f");
+  var avt = "0x0c83963bdf21858661415c478d39fa7dbd48a991";
   
   deployer.deploy(Migrations).then(function() {
-    return deployer.deploy(Storage);
-  }).then(function() {
     return deployer.deploy(LVote);
   }).then(function() {
     return deployer.deploy(LLock);
   }).then(function() {
+    return deployer.deploy(PVote, s.address);
+  }).then(function() {
+    return deployer.deploy(PLock, s.address);
+  }).then(function() {
+    addrLVote = LVote.address;
+    addrLLock = LLock.address;
+
+    // Link to the proxy not the actual implementation
+    LVote.address = PVote.address;
+    LLock.address = PLock.address;
+
     deployer.link(LVote, Vote);
     deployer.link(LLock, Vote);
 
-    return deployer.deploy(Vote, Storage.address);
+    return deployer.deploy(Vote, s.address);
   }).then(function() {
-    return Storage.deployed();    
-  }).then(function(s_) {
-    s = s_;
-    var avt = "0x0d88ed6e74bbfd96b831231638b66c05571e824f";
-
     console.log("Setting AVT = " + avt);
 
     return s.setAddress(web3.sha3("AVT"), avt);
@@ -36,4 +43,5 @@ module.exports = function(deployer, network, accounts) {
   }).then(function() {
     return s.setOwner(Vote.address);
   });
+
 };

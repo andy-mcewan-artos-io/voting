@@ -118,6 +118,18 @@ contract AventusVote is Owned {
     s.revealVote(id, optId, v, r, s_);
   }
 
+
+  /** 
+  * @dev Upgrade Storage if necissary
+  * @param s_ New Storage instance
+  */
+  function updateStorage(IStorage s_) 
+    public
+    onlyOwner
+  {
+    s = s_;
+  } 
+
   /** 
   * @dev Update the owner of the storage contract
   * @param owner_ New Owner of the storage contract
