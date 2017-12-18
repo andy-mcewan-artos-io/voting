@@ -15,9 +15,9 @@ module.exports = function(deployer, network, accounts) {
   }).then(function() {
     return deployer.deploy(LLock);
   }).then(function() {
-    return deployer.deploy(PVote, s.address);
+    return deployer.deploy(PVote);
   }).then(function() {
-    return deployer.deploy(PLock, s.address);
+    return deployer.deploy(PLock);
   }).then(function() {
     addrLVote = LVote.address;
     addrLLock = LLock.address;
@@ -40,6 +40,10 @@ module.exports = function(deployer, network, accounts) {
     return s.setUInt(web3.sha3("LockAmountMax"), web3.toWei(1, 'ether'));
   }).then(function() {
     return s.setUInt(web3.sha3("LockBalanceMax"), web3.toWei(1000, 'ether'));
+  }).then(function() {
+    return s.setUInt(web3.sha3("LVoteInstance"), addrLVote);
+  }).then(function() {
+    return s.setUInt(web3.sha3("LLockInstance"), addrLLock);
   }).then(function() {
     return s.setOwner(Vote.address);
   });

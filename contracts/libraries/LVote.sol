@@ -94,8 +94,7 @@ library LVote {
     uint id,
     address voter, 
     bytes32 secret,  // Sign the option id and hash the signature
-    uint prevTime, // The previous revealStart in the doubly linked list
-    uint prevId // The previous proposal ID that also has prevTime = revealStart
+    uint prevTime // The previous revealStart in the doubly linked list
   ) 
     public
     isStatus(s, id, 2) // Ensure voting period is currently active
@@ -104,31 +103,26 @@ library LVote {
     uint time = s.getUInt(keccak256("Vote", id, "revealingStart"));
     // The next revealStart referenced by the user's previous revealStart time
     uint nextTime = s.getUInt(keccak256("Voting", voter, prevTime, "nextTime"));
-    // Next proposal referenced by prev proposalId w/ prevTime = revealStart
-    uint nextId = s.getUInt(keccak256("Voting", voter, time, "secrets", prevId, "nextId"));
+    // the secret stored for the vote with id
+    bytes32 currSecret = s.getBytes32(keccak256("Voting", voter, "secrets", id));
+    // the number of votes currently relvealing at time
+    uint currVotes = s.getUInt(keccak256("Voting", voter, "count", time));
 
-    // Ensure prevTime passed in is correct and that user hasn't yet voted on 
-    // this proposal
-    require (time > prevTime && (nextTime == 0 || time <= nextTime) && id > prevId && (nextId == 0 || id < nextId));
+    // Ensure prevTime passed in is correct and that user hasn't yet voted
+    require (time > prevTime && (nextTime == 0 || time <= nextTime) && currSecret == 0);
 
-    // If revealStart time is less than next revealStart, insert new item into
-    // doubly linked list
-    if (time != nextTime) {
+    // If no items insterted at time, create new node in list
+    if (currVotes == 0) {
       // Create new entry
       s.setUInt(keccak256("Voting", voter, time, "prevTime"), prevTime);
       s.setUInt(keccak256("Voting", voter, time, "nextTime"), nextTime);
       s.setUInt(keccak256("Voting", voter, prevTime, "nextTime"), time);
       s.setUInt(keccak256("Voting", voter, nextTime, "prevTime"), time);
     }
-    // for the given revealStart item, in the next proposal ID doubly linked list
-    // Insert a new item for this proposal
-    s.setUInt(keccak256("Voting", voter, time, "secrets", id, "prevId"), prevId);
-    s.setUInt(keccak256("Voting", voter, time, "secrets", id, "nextId"), nextId);
-    s.setUInt(keccak256("Voting", voter, time, "secrets", prevId, "nextId"), id);
-    s.setUInt(keccak256("Voting", voter, time, "secrets", nextId, "prevId"), id);
 
     // Save the secret vote for the user and proposal
-    s.setBytes32(keccak256("Voting", voter, time, "secrets", id, "secret"), secret);
+    s.setBytes32(keccak256("Voting", voter, "secrets", id), secret);
+    s.setUInt(keccak256("Voting", voter, "count", time), currVotes + 1);
   }
 
   /** 
@@ -153,7 +147,7 @@ library LVote {
     // Get proposal revealStart
     uint time = s.getUInt(keccak256("Vote", id, "revealingStart"));
     // Get the voter's secret vote for the given proposal
-    bytes32 secret = s.getBytes32(keccak256("Voting", voter, time, "secrets", id, "secret"));
+    bytes32 secret = s.getBytes32(keccak256("Voting", voter, "secrets", id));
     // Make sure the original vote is the same as the reveal
     require (secret == keccak256(uint(v), r, s_));
 
@@ -174,20 +168,19 @@ library LVote {
   * @param id Proposal ID
   */
   function updateList(IStorage s, address voter, uint time, uint id) private {
-    uint prevId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "prevId"));
-    uint nextId = s.getUInt(keccak256("Voting", voter, time, "secrets", id, "nextId"));
+    uint currVotes = s.getUInt(keccak256("Voting", voter, "count", time));
 
     // remove time entry if proposal ID was the only one with that revealStart
-    if (prevId == nextId) {
+    if (currVotes == 1) {
       uint prevTime = s.getUInt(keccak256("Voting", voter, time, "prevTime"));
       uint nextTime = s.getUInt(keccak256("Voting", voter, time, "nextTime"));
       
       s.setUInt(keccak256("Voting", voter, prevTime, "nextTime"), nextTime);
       s.setUInt(keccak256("Voting", voter, nextTime, "nextTime"), prevTime);
-    } else { // remove secret entry if time entry still has other secrets
-      s.setUInt(keccak256("Voting", voter, time, "secrets", prevId, "nextId"), nextId);
-      s.setUInt(keccak256("Voting", voter, time, "secrets", nextId, "prevId"), prevId);
     }
+    
+    s.deleteBytes32(keccak256("Voting", voter, "secrets", id), secret);
+    s.setUInt(keccak256("Voting", voter, "count", time), currVotes - 1);
   }
 
   /** 
