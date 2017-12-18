@@ -6,9 +6,6 @@ import './libraries/LVote.sol';
 import './Owned.sol';
 
 contract AventusVote is Owned {
-  using LLock for IStorage;
-  using LVote for IStorage;
-
   modifier onlyVoteCreator(uint id) {
     require (msg.sender == s.getAddress(keccak256("Vote", id, "creator")));
     _;
@@ -29,7 +26,7 @@ contract AventusVote is Owned {
   * @param amount Amount to withdraw from lock
   */
   function withdraw(uint amount) public {
-    s.withdraw(msg.sender, amount);
+    LLock.withdraw(s, msg.sender, amount);
   }
 
   /** 
@@ -37,7 +34,7 @@ contract AventusVote is Owned {
   * @param amount Amount to withdraw from lock
   */
   function deposit(uint amount) public {
-    s.deposit(msg.sender, amount);
+    LLock.deposit(s, msg.sender, amount);
   }
 
   // @dev Toggle the ability to lock funds for staking (For security)
@@ -45,7 +42,7 @@ contract AventusVote is Owned {
     public
     onlyOwner
   {
-    s.toggleLockFreeze();
+    LLock.toggleLockFreeze(s);
   }
 
   /** 
@@ -58,7 +55,7 @@ contract AventusVote is Owned {
     public
     onlyOwner
   {
-    s.setThresholds(restricted, amount, balance);
+    LLock.setThresholds(s, restricted, amount, balance);
   }
 
   /** 
@@ -67,7 +64,7 @@ contract AventusVote is Owned {
   * @return uint ID of newly created proposal
   */
   function createVote(string desc) public {
-    s.createVote(msg.sender, desc);
+    LVote.createVote(s, msg.sender, desc);
   }
 
   /** 
@@ -79,7 +76,7 @@ contract AventusVote is Owned {
     public
     onlyVoteCreator(id)
   {
-    s.addVoteOption(id, option);
+    LVote.addVoteOption(s, id, option);
   }
 
   /** 
@@ -92,7 +89,7 @@ contract AventusVote is Owned {
     public
     onlyVoteCreator(id)
   {
-    s.finaliseVote(id, start, interval);
+    LVote.finaliseVote(s, id, start, interval);
   }
 
   /** 
@@ -103,7 +100,7 @@ contract AventusVote is Owned {
   * @param prevId The previous proposal ID at the current revealStart time 
   */
   function castVote(uint id, bytes32 secret, uint prevTime, uint prevId) public {
-    s.castVote(id, msg.sender, secret, prevTime, prevId);
+    LVote.castVote(s, id, msg.sender, secret, prevTime, prevId);
   }
 
   /** 
@@ -115,7 +112,7 @@ contract AventusVote is Owned {
   * @param s_ User's ECDSA signature(keccak(optID)) s value
   */
   function revealVote(uint id, uint optId, uint8 v, bytes32 r, bytes32 s_) public {
-    s.revealVote(id, optId, v, r, s_);
+    LVote.revealVote(s, id, optId, v, r, s_);
   }
 
 
