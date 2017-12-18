@@ -1,7 +1,7 @@
 pragma solidity ^0.4.18;
 
-import "../proxies/PDelegate.sol";
-import "../interfaces/IStorage.sol";
+import "./proxies/PDelegate.sol";
+import "./interfaces/IStorage.sol";
 import "./Owned.sol";
 
 // Persistent storage on the blockchain
