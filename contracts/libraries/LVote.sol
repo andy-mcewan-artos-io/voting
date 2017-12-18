@@ -87,7 +87,6 @@ library LVote {
   * @param voter Address of the voter
   * @param secret The secret vote: Sha3(signed Sha3(option ID))
   * @param prevTime The previous revealStart time that locked the user's funds
-  * @param prevId The previous proposal ID at the current revealStart time
   */
   function castVote(
     IStorage s, 
@@ -179,7 +178,7 @@ library LVote {
       s.setUInt(keccak256("Voting", voter, nextTime, "nextTime"), prevTime);
     }
     
-    s.deleteBytes32(keccak256("Voting", voter, "secrets", id), secret);
+    s.deleteBytes32(keccak256("Voting", voter, "secrets", id));
     s.setUInt(keccak256("Voting", voter, "count", time), currVotes - 1);
   }
 
