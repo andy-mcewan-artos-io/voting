@@ -3,6 +3,8 @@ var Storage = artifacts.require("./Storage.sol");
 var Vote = artifacts.require("./AventusVote.sol");
 var LVote = artifacts.require("./libraries/LVote.sol");
 var LLock = artifacts.require("./libraries/LLock.sol");
+var PVote = artifacts.require("./proxies/PVote.sol");
+var PLock = artifacts.require("./proxies/PLock.sol");
 
 module.exports = function(deployer, network, accounts) {
   var addrLVote, addrLLock;
